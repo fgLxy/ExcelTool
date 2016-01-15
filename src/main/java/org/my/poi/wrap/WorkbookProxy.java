@@ -1,4 +1,4 @@
-package org.my.poi.factory;
+package org.my.poi.wrap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,6 +23,14 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.my.exception.UnSupportFileTypeException;
 
+/**
+ * 对poi中HSSFWorkbook及XSSFWorkbook类型的代理类型。
+ * 主要目的在于
+ * 1、创建实例的时候无需考虑excel文件版本问题
+ * 2、close的时候可以自动将打开时所用的InputStream也一同关闭
+ * @author Administrator
+ *
+ */
 public class WorkbookProxy implements Workbook {
 	
 	private InputStream input;
