@@ -8,18 +8,18 @@ import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.util.LocaleUtil;
 import org.my.annotation.ThisIgnore;
 import org.my.annotation.TimePattern;
 import org.my.entity.User;
 import org.my.exception.TransformException;
+import org.my.exception.UnSupportFileTypeException;
+import org.my.poi.factory.WorkbookProxy;
 
 
 public class ExcelUtils {
@@ -45,7 +45,7 @@ public class ExcelUtils {
 	private static  Object getCellValue(Field field, Row row, int index) {
 		Class<?> type = field.getType();
 		
-		HSSFCell cell = (HSSFCell) row.getCell(index);
+		Cell cell = row.getCell(index);
 		int cellType = cell.getCellType();
 
 		switch (cellType) {
@@ -93,12 +93,11 @@ public class ExcelUtils {
 		return null;
 	}
 	
-	public static void main(String... args) throws IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException {
+	public static void main(String... args) throws UnSupportFileTypeException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException {
 		try(
-				NPOIFSFileSystem fileSystem = new NPOIFSFileSystem(new File("D://test.xls"));
-				HSSFWorkbook document = new HSSFWorkbook(fileSystem);
+				Workbook workbook = new WorkbookProxy(new File("D://test.xlsx"));
 				) {
-			Iterator<Sheet> sheetIter = document.iterator();
+			Iterator<Sheet> sheetIter = workbook.iterator();
 			
 			while(sheetIter.hasNext()) {
 				Sheet sheet = sheetIter.next();
