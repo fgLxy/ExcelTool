@@ -3,6 +3,7 @@ package org.my.poi.wrap;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,10 +38,26 @@ public class WorkbookProxy implements Workbook {
 	
 	private Workbook workbook;
 	
-	private static final String XSSF_TYPE = ".xlsx";
+	private ExcelType type;
 	
-	private static final String HSSF_TYPE = ".xls";
+	public enum ExcelType {
+		XSSF, HSSF
+	}
 	
+	public static final String XSSF_TYPE = ".xlsx";
+	
+	public static final String HSSF_TYPE = ".xls";
+	
+	
+	public WorkbookProxy(ExcelType fileType) throws UnSupportFileTypeException {
+		if(fileType == ExcelType.XSSF) {
+			this.workbook = new XSSFWorkbook();
+		} else if(fileType == ExcelType.HSSF) {
+			this.workbook = new HSSFWorkbook();
+		} else {
+			throw new UnSupportFileTypeException("不支持的文件:" + fileType);
+		}
+	}
 	
 	public WorkbookProxy(File file) throws UnSupportFileTypeException, IOException {
 		String fileName = file.getName().toLowerCase();
@@ -49,8 +66,10 @@ public class WorkbookProxy implements Workbook {
 			this.input = new FileInputStream(file);
 			if(fileName.endsWith(XSSF_TYPE)) {
 				this.workbook = new XSSFWorkbook(input);
+				type = ExcelType.XSSF;
 			} else if(fileName.endsWith(HSSF_TYPE)) {
 				this.workbook = new HSSFWorkbook(input);
+				type = ExcelType.HSSF;
 			} else {
 				throw new UnSupportFileTypeException("不支持的文件:" + file.getName());
 			}
@@ -67,6 +86,26 @@ public class WorkbookProxy implements Workbook {
 			}
 		}
 		
+	}
+	
+	public void save(String directory, String fileName) throws Exception {
+		File directoryF = new File(directory);
+		if(!directoryF.exists()) {
+			directoryF.mkdir();
+		}
+		File file = null;
+		if(directoryF.isDirectory()) {
+			file = new File(directoryF.getAbsolutePath() + "/" +  fileName + (type == ExcelType.HSSF ? HSSF_TYPE : XSSF_TYPE));
+		} else {
+			throw new Exception("directory必须为目录");
+		}
+		try(OutputStream output = new FileOutputStream(file);) {
+			this.workbook.write(output);
+		}
+	}
+	
+	public ExcelType getExcelType() {
+		return this.type;
 	}
 	
 	@Override

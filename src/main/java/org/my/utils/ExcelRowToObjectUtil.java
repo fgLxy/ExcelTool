@@ -130,29 +130,61 @@ public class ExcelRowToObjectUtil {
 		
 		Cell cell = row.getCell(index);
 		int cellType = cell.getCellType();
-
+		Object value = null;
 		switch (cellType) {
-        case Cell.CELL_TYPE_BLANK:
-            return null;
-        case Cell.CELL_TYPE_BOOLEAN:
-            return cell.getBooleanCellValue();
-        case Cell.CELL_TYPE_FORMULA:
-            return cell.getCellFormula();
-        case Cell.CELL_TYPE_NUMERIC:
-            if (HSSFDateUtil.isCellDateFormatted(cell)) {
+        case Cell.CELL_TYPE_BLANK: {
+        	return value;
+        }
+        case Cell.CELL_TYPE_BOOLEAN: {
+        	value = cell.getBooleanCellValue();
+            break;
+        }
+        case Cell.CELL_TYPE_FORMULA: {
+        	value = cell.getCellFormula();
+        	break;
+        }
+        case Cell.CELL_TYPE_NUMERIC: {
+        	if (HSSFDateUtil.isCellDateFormatted(cell)) {
             	TimePattern pattern = field.getAnnotation(TimePattern.class);
             	String patternStr = pattern == null ? "yyyy-MM-dd HH:mm:ss" : pattern.getPattern();
                 SimpleDateFormat sdf = new SimpleDateFormat(patternStr, LocaleUtil.getUserLocale());
                 sdf.setTimeZone(LocaleUtil.getUserTimeZone());
-                return sdf.format(cell.getDateCellValue());
+                value = sdf.format(cell.getDateCellValue());
             }
-			return getNumeric(type, cell.getNumericCellValue());
-        case Cell.CELL_TYPE_STRING:
-            return cell.getStringCellValue();
+            value = getNumeric(type, cell.getNumericCellValue());
+            break;
+        }
+        case Cell.CELL_TYPE_STRING: {
+        	value = cell.getStringCellValue();
+        	break;
+        }
         default:
         	throw new TransformException("unsupport field type:" + type);
 		}
 		
+		if(value == null || field.getType().equals(value.getClass())) {
+			return value;
+		}
+		return transformToType(type, value);
+		
+	}
+	
+	/**
+	 * value的类型只能是String类型了
+	 * @param value
+	 * @param type
+	 * @return
+	 */
+	private static Object transformToType(Class<?> type, Object value) {
+		Object rtn = null;
+		try {
+			double param = Double.valueOf(value.toString()).doubleValue();
+			rtn = getNumeric(type, param);
+		} catch(Exception e) {
+			
+		}
+		if(rtn != null) return rtn;
+		throw new TransformException("不能将" + value.getClass().getName() + "类的" + value + "转换为" + type.getName() + "类型");
 	}
 
 	/**
