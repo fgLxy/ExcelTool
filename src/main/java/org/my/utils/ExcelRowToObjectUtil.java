@@ -22,7 +22,7 @@ import org.my.exception.UnSupportFileTypeException;
 import org.my.poi.factory.WorkbookProxy;
 
 
-public class ExcelUtils {
+public class ExcelRowToObjectUtil {
 	
 	public static <T> T getObjectByRow(Class<T> clazz, Row row) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, NoSuchFieldException {
 		T obj = clazz.getConstructor().newInstance();
